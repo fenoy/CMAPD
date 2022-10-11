@@ -29,6 +29,12 @@ The solver receives a file where each row is a path of waypoints:
 - k: the number of agents
 - t: the runtime limit
 
+To run PBS for 50 assignments generated with the greedy task assignment code with 20 agents and 40 tasks do:
+
+```
+sh ./evaluate.sh greedy 20 40 50
+```
+
 You can find more details and explanations for all parameters with:
 
 ```

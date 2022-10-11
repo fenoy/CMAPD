@@ -35,12 +35,6 @@ To run PBS for 50 assignments generated with the greedy task assignment code wit
 sh ./evaluate.sh greedy 20 40 50
 ```
 
-You can find more details and explanations for all parameters with:
-
-```
-./pbs --help
-```
-
 ## License
 
 PBS is released under USC – Research License. See license.md for further details.

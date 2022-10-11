@@ -56,4 +56,5 @@ for k, (agents_file, task_file) in enumerate(zip(sorted(files['agents']), sorted
         print(t2 - t1)
         f.write(str(len(assignment)) + '\n')
         for a in assignment:
+            f.write(str(len(a)) + ',')
             f.write(','.join(','.join(map(str, aa)) for aa in a) + '\n')

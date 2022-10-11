@@ -19,7 +19,7 @@ python3 generate_instances.py --a 20 --t 40 --n 50
 Display task assignemnt options:
 
 ```
-python3 generate_instances -h
+python3 evaluation.py -h
 ```
 
 Compute greedy task assignment for instances in path "./instances/a20-t40":

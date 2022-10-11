@@ -89,8 +89,6 @@ def ta_ortools_(distance_matrix, agents, tasks, capacity, makespan):
     solution = routing.SolveWithParameters(search_parameters)
 
     if solution:
-        print(solution)
-
         trips = []
         for vehicle_id in range(num_vehicles):
             index = routing.Start(vehicle_id)

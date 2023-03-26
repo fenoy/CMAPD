@@ -126,6 +126,9 @@ class Transformer(nn.Module):
         self.embedder_tasks = Embedder(input_size, d_model)
         self.encoder_tasks = Encoder(d_model, nhead, dim_feedforward, num_layers)
 
+        self.embedder_agents = Embedder(input_size[:2], d_model)
+        self.encoder_agents = Encoder(d_model, nhead, dim_feedforward, num_layers)
+
         self.decoder = Decoder(d_model, nhead)
 
         self.v = nn.Parameter(torch.empty(1, 1, d_model).uniform_(
@@ -165,12 +168,15 @@ class Transformer(nn.Module):
         ht = self.embedder_tasks(tasks)                                         # Obtain hidden representation of the tasks with an embedding layer
         ht = self.encoder_tasks(ht, padding_mask)                               # Obtain hidden representation of the tasks with an attention-based encoder
 
-        ha = self._get_hidden_state(ht, assignment.indices)                     # Obtain hidden representation of the assignment by combining the hidden representation of tasks in the current assignment
+        hs = self._get_hidden_state(ht, assignment.indices)                     # Obtain hidden representation of the assignment by combining the hidden representation of tasks in the current assignment
+        
+        ha = self.embedder_agents(assignment.agents)                            # Obtain hidden representation of the agents with an embedding layer
+        ha = self.encoder_agents(ha, padding_mask)                              # Obtain hidden representation of the agents with an attention-based encoder
         
         #hp = self.embedder_paths(assignment.paths)                             # Obtain hidden representation of the paths with an embedding layer (NOT IMPLEMENTED)    
         #hp = self.encoder_paths(hp)                                            # Obtain hidden representation of the paths with an attention-based encoder (NOT IMPLEMENTED)
         
-        #h_combined = ha + hp                                                   # Combine assignment and paths hidden representation (NOT IMPLEMENTED)
+        h_combined = ht + hs + ha                                               # Combine assignment and paths hidden representation (NOT IMPLEMENTED)
 
         probs = 8 * torch.tanh(self.decoder(ha, ht, mask))                      # Scale the attention weights computed by the decoder with C * tanh(attention_weights) (C = 8 worked well in the past)
         probs = F.softmax(probs.masked_fill(mask, float("-inf")), dim=-1)       # Normalize the probabilities with a softmax

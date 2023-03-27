@@ -147,7 +147,7 @@ class Transformer(nn.Module):
         src = torch.ones(batch_size, size_a, size_c, dtype=torch.bool, device=indices.device)
         mask.scatter_add_(2, 1 + indices, src)
         return mask[..., 1:].any(dim=1, keepdim=True)
-
+    
     def forward(self, tasks, assignment):
         '''
         Input:
@@ -155,7 +155,6 @@ class Transformer(nn.Module):
             - assignment: Collective class inside environment.py
                 - indices: Pytorch tensor of indices [batch_size, number_of_agents, max_collective_size]
                 - paths: Pytorch tensor of paths representation [batch_size, number_of_agents, X]
-
         Output:
             - probability: Pytorch tensor [batch_size, number_of_agents, number_of_tasks]
         '''
@@ -171,15 +170,15 @@ class Transformer(nn.Module):
         hs = self._get_hidden_state(ht, assignment.indices)                     # Obtain hidden representation of the assignment by combining the hidden representation of tasks in the current assignment
         
         ha = self.embedder_agents(assignment.agents)                            # Obtain hidden representation of the agents with an embedding layer
-        ha = self.encoder_agents(ha, padding_mask)                              # Obtain hidden representation of the agents with an attention-based encoder
+        ha = self.encoder_agents(ha)                                            # Obtain hidden representation of the agents with an attention-based encoder
         
         #hp = self.embedder_paths(assignment.paths)                             # Obtain hidden representation of the paths with an embedding layer (NOT IMPLEMENTED)    
         #hp = self.encoder_paths(hp)                                            # Obtain hidden representation of the paths with an attention-based encoder (NOT IMPLEMENTED)
-        
-        h_combined = ht + hs + ha                                               # Combine assignment and paths hidden representation (NOT IMPLEMENTED)
 
-        probs = 8 * torch.tanh(self.decoder(ha, ht, mask))                      # Scale the attention weights computed by the decoder with C * tanh(attention_weights) (C = 8 worked well in the past)
+        h_combined = hs + ha                                                    # Combine assignment and paths hidden representation (NOT IMPLEMENTED)
+
+        probs = 8 * torch.tanh(self.decoder(h_combined, ht, mask))              # Scale the attention weights computed by the decoder with C * tanh(attention_weights) (C = 8 worked well in the past)
         probs = F.softmax(probs.masked_fill(mask, float("-inf")), dim=-1)       # Normalize the probabilities with a softmax
         probs = probs.masked_fill(mask, 0)                                      # Assign probability 0 to the elements which cannot be selected indicated by the mask
 
-        return probs.transpose(-1, -2)                                          # Return the probabilities [batch_size, number_of_agents, max_number_of_tasks]
+        return probs.transpose(-1, -2)  
